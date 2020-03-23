@@ -31,7 +31,8 @@ pollkb:	inb status
 	jmp pollkb
 
 
-entercase:	txa
+entercase:	jmp checkexit
+notexiting:	txa
 	sba count
 	ada# linechars
 	tax
@@ -39,12 +40,37 @@ entercase:	txa
 	sta count
 	jmp pollkb
 
-backspacecase:txa
+backspacecase: txa
 	sba# 1
 	tax
 	lda# $20
 	outb+ monitorbuffer
 	dec count
 	jmp pollkb
+
+
+checkexit:	lda# 4
+	cma count
+	jne notexiting
+	txa
+	sba# 4
+	tax
+	inb+ monitorbuffer
+	cma# 'e'
+	jne notexiting
+	adx# 1
+	inb+ monitorbuffer
+	cma# 'x'
+	jne notexiting
+	adx# 1
+	inb+ monitorbuffer
+	cma# 'i'
+	jne notexiting
+	adx# 1
+	inb+ monitorbuffer
+	cma# 't'
+	jne notexiting
+	adx# 1
+	jmp end
 
 end:	hlt
