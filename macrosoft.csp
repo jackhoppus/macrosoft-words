@@ -1,0 +1,50 @@
+	.equ @, $000
+	.equ monitorbuffer, $100
+	.equ monitorcontrol, $316
+	.equ clearscreen, $01
+	.equ width, 38
+	.equ linechars, $26
+	.equ status, $000
+	.equ data, $001
+	.equ count, $DDD
+
+	.equ backspace, $8
+	.equ enter, $0D
+
+	lda# 0
+	sta count
+main:	lda# clearscreen
+	outb monitorcontrol	;CLEARS SCREEN
+	ldx# 0
+
+pollkb:	inb status
+	nop
+	jge pollkb
+	inb data
+	cma# enter
+	jeq entercase
+	cma# backspace
+	jeq backspacecase
+	outb+ monitorbuffer
+	inc $DDD
+	adx# 1
+	jmp pollkb
+
+
+entercase:	txa
+	sba count
+	ada# linechars
+	tax
+	lda# 0
+	sta count
+	jmp pollkb
+
+backspacecase:txa
+	sba# 1
+	tax
+	lda# $20
+	outb+ monitorbuffer
+	dec count
+	jmp pollkb
+
+end:	hlt
